@@ -1,4 +1,5 @@
 package model;
+import java.util.ArrayList;
 import java.util.List;
 
 import java.util.UUID;
@@ -11,7 +12,7 @@ public class Client extends Personne{
     public Client(String nom, String prenom, String email, String motDePasse) {
         super(nom, prenom, email, motDePasse);
         this.idClient = UUID.randomUUID();
-        this.comptes = new List<>();
+        this.comptes = new ArrayList<>();
     }
 
     public UUID getIdClient() {
