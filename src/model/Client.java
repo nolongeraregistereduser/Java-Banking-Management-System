@@ -24,6 +24,30 @@ public class Client extends Personne{
     }
 
 
+    public void ajouterCompte(Compte compte) {
+        if (compte != null && !comptes.contains(compte)) {
+            comptes.add(compte);
+            compte.setIdClient(this.idClient); // Synchronisation
+        }
+    }
+
+    public void supprimerCompte(Compte compte) {
+        comptes.remove(compte);
+    }
+
+    public UUID getIdCompte() {
+        return idClient;
+    }
+
+    public List<Compte> getListeComptes() {
+        return comptes;
+    }
+
+    public void setComptes(List<Compte> comptes) {
+        this.comptes = comptes;
+    }
+
+    
 
     @Override
     public void afficher() {

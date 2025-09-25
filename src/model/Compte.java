@@ -13,8 +13,8 @@ public class Compte {
     UUID idClient;
 
 
-    public compte(UUID idCompte, TypeCompte typeCompte, BigDecimal solde, List<Transaction> transactions, UUID idClient) {
-        this.idCompte = UUID.randomUUID();
+    public Compte(UUID idCompte, TypeCompte typeCompte, BigDecimal solde, List<Transaction> transactions, UUID idClient) {
+        this.idCompte = idCompte;
         this.typeCompte = typeCompte;
         this.solde = solde;
         this.transactions = transactions;
@@ -43,6 +43,14 @@ public class Compte {
 
     public UUID getIdClient() {
         return idClient;
+    }
+
+    public void setIdClient(UUID idClient) {
+        this.idClient = idClient;
+    }
+
+    public void setSolde(BigDecimal solde) {
+        this.solde = solde;
     }
 
 
