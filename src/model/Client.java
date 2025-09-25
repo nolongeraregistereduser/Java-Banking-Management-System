@@ -31,13 +31,16 @@ public class Client extends Personne{
         }
     }
 
+
     public void supprimerCompte(Compte compte) {
         comptes.remove(compte);
     }
 
-    public UUID getIdCompte() {
-        return idClient;
+   /*public UUID getIdCompte() {
+        return
     }
+*/
+
 
     public List<Compte> getListeComptes() {
         return comptes;
