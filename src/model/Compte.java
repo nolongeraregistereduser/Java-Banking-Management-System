@@ -53,5 +53,10 @@ public class Compte {
         this.solde = solde;
     }
 
+    public void ajouterTransaction(Transaction transaction) {
+        if (transaction != null && !transactions.contains(transaction)) {
+            transactions.add(transaction);
+        }
+    }
 
 }
