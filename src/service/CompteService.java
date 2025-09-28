@@ -7,9 +7,13 @@ import model.exceptions.*;
 import repository.CompteRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class CompteService {
 
@@ -117,4 +121,94 @@ public class CompteService {
     }
 
 
+    public List<Transaction> filtrerTransactionsParType(UUID idCompte, TypeTransaction type) {
+        return filtrerTransactions(idCompte, transaction -> transaction.getTypeTransaction().equals(type));
+    }
+
+    public List<Transaction> filtrerTransactionsParMontant(UUID idCompte, BigDecimal montantMin, BigDecimal montantMax) {
+        return filtrerTransactions(idCompte, transaction ->
+                transaction.getMontant().compareTo(montantMin) >= 0 &&
+                        transaction.getMontant().compareTo(montantMax) <= 0);
+    }
+
+    public List<Transaction> filtrerTransactionsParDate(UUID idCompte, LocalDate dateDebut, LocalDate dateFin) {
+        return filtrerTransactions(idCompte, transaction -> {
+            // Convert Date to LocalDate for comparison (Java 8 compatible)
+            LocalDate transactionDate = transaction.getDate().toInstant()
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+            return !transactionDate.isBefore(dateDebut) && !transactionDate.isAfter(dateFin);
+        });
+    }
+
+    public List<Transaction> filtrerTransactions(UUID idCompte, Predicate<Transaction> critere) {
+        Optional<Compte> compteOpt = compteRepository.findById(idCompte);
+        if (!compteOpt.isPresent()) {
+            throw new CompteNotFoundException("Compte introuvable");
+        }
+
+        return compteOpt.get().getTransactions().stream()
+                .filter(critere)
+                .collect(Collectors.toList());
+    }
+
+    public List<Transaction> trierTransactionsParMontant(UUID idCompte, boolean croissant) {
+        return obtenirTransactionsTries(idCompte,
+                croissant ? Comparator.comparing(Transaction::getMontant)
+                        : Comparator.comparing(Transaction::getMontant).reversed());
+    }
+
+    public List<Transaction> trierTransactionsParDate(UUID idCompte, boolean croissant) {
+        return obtenirTransactionsTries(idCompte,
+                croissant ? Comparator.comparing(Transaction::getDate)
+                        : Comparator.comparing(Transaction::getDate).reversed());
+    }
+
+    private List<Transaction> obtenirTransactionsTries(UUID idCompte, Comparator<Transaction> comparator) {
+        Optional<Compte> compteOpt = compteRepository.findById(idCompte);
+        if (!compteOpt.isPresent()) {
+            throw new CompteNotFoundException("Compte introuvable");
+        }
+
+        return compteOpt.get().getTransactions().stream()
+                .sorted(comparator)
+                .collect(Collectors.toList());
+    }
+
+    // Statistics methods using streams
+    public BigDecimal calculerTotalDepots(UUID idCompte) {
+        return calculerTotalParType(idCompte, TypeTransaction.DEPOT);
+    }
+
+    public BigDecimal calculerTotalRetraits(UUID idCompte) {
+        return calculerTotalParType(idCompte, TypeTransaction.RETRAIT);
+    }
+
+    public BigDecimal calculerTotalVirements(UUID idCompte) {
+        return calculerTotalParType(idCompte, TypeTransaction.VIREMENT);
+    }
+
+    private BigDecimal calculerTotalParType(UUID idCompte, TypeTransaction type) {
+        return filtrerTransactionsParType(idCompte, type).stream()
+                .map(Transaction::getMontant)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    // Detect suspicious transactions
+    public List<Transaction> detecterTransactionsSuspectes(UUID idCompte) {
+        BigDecimal seuilSuspect = new BigDecimal("10000");
+
+        return filtrerTransactions(idCompte, transaction ->
+                transaction.getMontant().compareTo(seuilSuspect) > 0 ||
+                        isTransactionRepetitive(idCompte, transaction));
+    }
+
+    private boolean isTransactionRepetitive(UUID idCompte, Transaction transaction) {
+        long countSimilar = filtrerTransactions(idCompte, t ->
+                t.getTypeTransaction().equals(transaction.getTypeTransaction()) &&
+                        t.getMontant().equals(transaction.getMontant()) &&
+                        !t.equals(transaction))
+                .size();
+
+        return countSimilar >= 3; // Suspicious if 3 or more similar transactions
+    }
 }
