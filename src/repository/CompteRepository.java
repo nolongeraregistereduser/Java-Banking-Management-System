@@ -33,9 +33,10 @@ public class CompteRepository {
     // Trouver les comptes d'un client
     public List<Compte> findByClientId(UUID clientId) {
         return comptes.stream()
-                .filter(compte -> compte.getProprietaire().getIdClient().equals(clientId))
+                .filter(compte -> compte.getIdClient().equals(clientId))
                 .collect(Collectors.toList());
     }
+
 
     public boolean exists(UUID idCompte) {
         return findById(idCompte).isPresent();

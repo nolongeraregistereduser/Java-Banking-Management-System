@@ -59,7 +59,8 @@ public class Compte {
         }
     }
 
+    /*
     public Client getProprietaire() {
         return
-    }
+    }*/
 }

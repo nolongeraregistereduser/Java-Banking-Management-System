@@ -1,9 +1,17 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import controller.CompteController;
+import repository.CompteRepository;
+import service.CompteService;
+import ui.MenuConsole;
+
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.println("Hello and welcome!");
+        // Créer les couches dans l'ordre
+        CompteRepository compteRepository = new CompteRepository();
+        CompteService compteService = new CompteService(compteRepository);
+        CompteController compteController = new CompteController(compteService);
+
+        // Lancer l'interface utilisateur
+        MenuConsole menu = new MenuConsole(compteController);
+        menu.afficherMenu();
     }
 }
