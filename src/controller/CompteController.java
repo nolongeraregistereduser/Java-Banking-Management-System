@@ -2,8 +2,10 @@ package controller;
 
 import service.CompteService;
 import model.Transaction;
+import model.TypeTransaction;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,5 +53,28 @@ public class CompteController {
         System.out.println("Compte " + idCompte + " fermé avec succès.");
     }
 
+    // New filtering and sorting methods
+    public List<Transaction> filtrerTransactionsParType(UUID idCompte, TypeTransaction type) {
+        return compteService.filtrerTransactionsParType(idCompte, type);
+    }
 
+    public List<Transaction> filtrerTransactionsParMontant(UUID idCompte, BigDecimal montantMin, BigDecimal montantMax) {
+        return compteService.filtrerTransactionsParMontant(idCompte, montantMin, montantMax);
+    }
+
+    public List<Transaction> filtrerTransactionsParDate(UUID idCompte, LocalDate dateDebut, LocalDate dateFin) {
+        return compteService.filtrerTransactionsParDate(idCompte, dateDebut, dateFin);
+    }
+
+    public List<Transaction> trierTransactionsParMontant(UUID idCompte, boolean croissant) {
+        return compteService.trierTransactionsParMontant(idCompte, croissant);
+    }
+
+    public List<Transaction> trierTransactionsParDate(UUID idCompte, boolean croissant) {
+        return compteService.trierTransactionsParDate(idCompte, croissant);
+    }
+
+    public List<Transaction> detecterTransactionsSuspectes(UUID idCompte) {
+        return compteService.detecterTransactionsSuspectes(idCompte);
+    }
 }
