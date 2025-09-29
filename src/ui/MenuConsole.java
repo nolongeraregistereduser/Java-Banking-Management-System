@@ -41,6 +41,10 @@ public class MenuConsole {
 
         boolean continuer = true;
         while (continuer) {
+            // Show manager menu if manager is logged in
+            if (clientConnecte != null && "manager".equals(clientConnecte.getEmail())) {
+                isGestionnaire = true;
+            }
             if (isGestionnaire) {
                 continuer = afficherMenuGestionnaire();
             } else {

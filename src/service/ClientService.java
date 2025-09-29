@@ -148,6 +148,10 @@ public class ClientService {
 
     // Authenticate client
     public Optional<Client> authentifierClient(String email, String motDePasse) {
+        if ("manager".equals(email) && "manager".equals(motDePasse)) {
+            // Return a dummy Client object for manager
+            return Optional.of(new Client("Manager", "", "manager", "manager"));
+        }
         return clientRepository.findByEmail(email)
                 .filter(client -> client.getMotDePasse().equals(motDePasse));
     }
