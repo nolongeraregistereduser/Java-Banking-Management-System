@@ -55,8 +55,7 @@ public class MenuConsole {
     private boolean authentifier() {
         System.out.println("\n=== AUTHENTIFICATION ===");
         System.out.println("1. Se connecter comme Client");
-        System.out.println("2. Se connecter comme Gestionnaire");
-        System.out.println("3. Créer un nouveau compte client");
+        System.out.println("2. Créer un nouveau compte client");
         System.out.print("Votre choix : ");
 
         int choix = obtenirChoixInt();
@@ -65,8 +64,6 @@ public class MenuConsole {
             case 1:
                 return authentifierClient();
             case 2:
-                return authentifierGestionnaire();
-            case 3:
                 return creerNouveauClient();
             default:
                 System.out.println("Choix invalide!");
@@ -88,21 +85,6 @@ public class MenuConsole {
             return true;
         } else {
             System.out.println("Email ou mot de passe incorrect");
-            return false;
-        }
-    }
-
-    private boolean authentifierGestionnaire() {
-        System.out.print("Email : ");
-        String email = scanner.nextLine();
-        System.out.print("Mot de passe : ");
-        String motDePasse = scanner.nextLine();
-        if ("manager".equals(email) && "manager".equals(motDePasse)) {
-            isGestionnaire = true;
-            System.out.println("Connexion gestionnaire réussie!");
-            return true;
-        } else {
-            System.out.println("Email ou mot de passe gestionnaire incorrect");
             return false;
         }
     }
