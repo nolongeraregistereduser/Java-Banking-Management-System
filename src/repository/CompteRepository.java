@@ -5,7 +5,6 @@ import model.Compte;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class CompteRepository {
@@ -16,9 +15,9 @@ public class CompteRepository {
         comptes.add(compte);
     }
 
-    public Optional<Compte> findById(UUID idCompte) {
+    public Optional<Compte> findById(int idCompte) {
         return comptes.stream()
-                .filter(compte -> compte.getIdCompte().equals(idCompte))
+                .filter(compte -> compte.getIdCompte() == idCompte)
                 .findFirst();
     }
 
@@ -26,19 +25,18 @@ public class CompteRepository {
         return new ArrayList<>(comptes); // Retourner une copie pour l'encapsulation
     }
 
-    public boolean deleteCompte(UUID idCompte) {
-        return comptes.removeIf(compte -> compte.getIdCompte().equals(idCompte));
+    public boolean deleteCompte(int idCompte) {
+        return comptes.removeIf(compte -> compte.getIdCompte() == idCompte);
     }
 
     // Trouver les comptes d'un client
-    public List<Compte> findByClientId(UUID clientId) {
+    public List<Compte> findByClientId(int clientId) {
         return comptes.stream()
-                .filter(compte -> compte.getIdClient().equals(clientId))
+                .filter(compte -> compte.getIdClient() == clientId)
                 .collect(Collectors.toList());
     }
 
-
-    public boolean exists(UUID idCompte) {
+    public boolean exists(int idCompte) {
         return findById(idCompte).isPresent();
     }
 

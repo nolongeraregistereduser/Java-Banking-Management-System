@@ -7,7 +7,6 @@ import model.TypeTransaction;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 
 public class CompteController {
@@ -19,24 +18,24 @@ public class CompteController {
     }
 
 
-    public void deposer(UUID idCompte, BigDecimal montant) {
+    public void deposer(int idCompte, BigDecimal montant) {
         compteService.effectuerDepot(idCompte, montant);
     }
 
-    public void retirer(UUID idCompte, BigDecimal montant) {
+    public void retirer(int idCompte, BigDecimal montant) {
         compteService.effectuerRetrait(idCompte, montant);
     }
 
-    public void virer(UUID idCompteSource, UUID idCompteDestination, BigDecimal montant) {
+    public void virer(int idCompteSource, int idCompteDestination, BigDecimal montant) {
         compteService.effectuerVirement(idCompteSource, idCompteDestination, montant);
     }
 
-    public void afficherSolde(UUID idCompte) {
+    public void afficherSolde(int idCompte) {
         BigDecimal solde = compteService.consulterSolde(idCompte);
         System.out.println("Solde du compte " + idCompte + " : " + solde + " €");
     }
 
-    public void afficherHistorique(UUID idCompte) {
+    public void afficherHistorique(int idCompte) {
         List<Transaction> transactions = compteService.listerTransactions(idCompte);
         System.out.println("Historique des transactions pour le compte " + idCompte + " :");
         if (transactions.isEmpty()) {
@@ -48,33 +47,33 @@ public class CompteController {
         }
     }
 
-    public void fermerCompte(UUID idCompte) {
+    public void fermerCompte(int idCompte) {
         compteService.fermerCompte(idCompte);
         System.out.println("Compte " + idCompte + " fermé avec succès.");
     }
 
     // New filtering and sorting methods
-    public List<Transaction> filtrerTransactionsParType(UUID idCompte, TypeTransaction type) {
+    public List<Transaction> filtrerTransactionsParType(int idCompte, TypeTransaction type) {
         return compteService.filtrerTransactionsParType(idCompte, type);
     }
 
-    public List<Transaction> filtrerTransactionsParMontant(UUID idCompte, BigDecimal montantMin, BigDecimal montantMax) {
+    public List<Transaction> filtrerTransactionsParMontant(int idCompte, BigDecimal montantMin, BigDecimal montantMax) {
         return compteService.filtrerTransactionsParMontant(idCompte, montantMin, montantMax);
     }
 
-    public List<Transaction> filtrerTransactionsParDate(UUID idCompte, LocalDate dateDebut, LocalDate dateFin) {
+    public List<Transaction> filtrerTransactionsParDate(int idCompte, LocalDate dateDebut, LocalDate dateFin) {
         return compteService.filtrerTransactionsParDate(idCompte, dateDebut, dateFin);
     }
 
-    public List<Transaction> trierTransactionsParMontant(UUID idCompte, boolean croissant) {
+    public List<Transaction> trierTransactionsParMontant(int idCompte, boolean croissant) {
         return compteService.trierTransactionsParMontant(idCompte, croissant);
     }
 
-    public List<Transaction> trierTransactionsParDate(UUID idCompte, boolean croissant) {
+    public List<Transaction> trierTransactionsParDate(int idCompte, boolean croissant) {
         return compteService.trierTransactionsParDate(idCompte, croissant);
     }
 
-    public List<Transaction> detecterTransactionsSuspectes(UUID idCompte) {
+    public List<Transaction> detecterTransactionsSuspectes(int idCompte) {
         return compteService.detecterTransactionsSuspectes(idCompte);
     }
 }

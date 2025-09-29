@@ -5,8 +5,6 @@ import model.Client;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class ClientRepository {
 
@@ -14,13 +12,13 @@ public class ClientRepository {
 
     public void save(Client client) {
         // Remove existing client with same ID if exists
-        clients.removeIf(c -> c.getIdClient().equals(client.getIdClient()));
+        clients.removeIf(c -> c.getIdClient() == client.getIdClient());
         clients.add(client);
     }
 
-    public Optional<Client> findById(UUID idClient) {
+    public Optional<Client> findById(int idClient) {
         return clients.stream()
-                .filter(client -> client.getIdClient().equals(idClient))
+                .filter(client -> client.getIdClient() == idClient)
                 .findFirst();
     }
 
@@ -34,11 +32,11 @@ public class ClientRepository {
         return new ArrayList<>(clients);
     }
 
-    public boolean deleteById(UUID idClient) {
-        return clients.removeIf(client -> client.getIdClient().equals(idClient));
+    public boolean deleteById(int idClient) {
+        return clients.removeIf(client -> client.getIdClient() == idClient);
     }
 
-    public boolean exists(UUID idClient) {
+    public boolean exists(int idClient) {
         return findById(idClient).isPresent();
     }
 

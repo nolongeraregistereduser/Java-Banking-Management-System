@@ -11,7 +11,6 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -23,13 +22,13 @@ public class CompteService {
         this.compteRepository = compteRepository;
     }
 
-    public void effectuerDepot(UUID idCompte, BigDecimal montant) {
+    public void effectuerDepot(int idCompte, BigDecimal montant) {
         if (montant.compareTo(BigDecimal.ZERO) <= 0) {
             throw new MontantInvalideException("Le montant doit être positif");
         }
 
         Optional<Compte> compteOpt = compteRepository.findById(idCompte);
-        if (!compteOpt.isPresent()) { // Changé isEmpty() par !isPresent() dosn't exist in Java 8
+        if (!compteOpt.isPresent()) {
             throw new CompteNotFoundException("Compte introuvable");
         }
 
@@ -42,7 +41,7 @@ public class CompteService {
         compteRepository.save(compte);
     }
 
-    public void effectuerRetrait(UUID idCompte, BigDecimal montant) {
+    public void effectuerRetrait(int idCompte, BigDecimal montant) {
         if (montant.compareTo(BigDecimal.ZERO) <= 0) {
             throw new MontantInvalideException("Le montant doit être positif");
         }
@@ -65,39 +64,43 @@ public class CompteService {
         compteRepository.save(compte);
     }
 
-    public void effectuerVirement(UUID idCompteSource, UUID idCompteDestination, BigDecimal montant) {
+    public void effectuerVirement(int idCompteSource, int idCompteDestination, BigDecimal montant) {
         if (montant.compareTo(BigDecimal.ZERO) <= 0) {
             throw new MontantInvalideException("Le montant doit être positif");
         }
 
-        Optional<Compte> compteSourceOpt = compteRepository.findById(idCompteSource);
-        Optional<Compte> compteDestOpt = compteRepository.findById(idCompteDestination);
+        Optional<Compte> sourceOpt = compteRepository.findById(idCompteSource);
+        Optional<Compte> destOpt = compteRepository.findById(idCompteDestination);
 
-        if (!compteSourceOpt.isPresent() || !compteDestOpt.isPresent()) { // ✅ Correction
+        if (!sourceOpt.isPresent() || !destOpt.isPresent()) {
             throw new CompteNotFoundException("Compte source ou destination introuvable");
         }
 
-        Compte compteSource = compteSourceOpt.get();
-        Compte compteDestination = compteDestOpt.get();
+        Compte source = sourceOpt.get();
+        Compte dest = destOpt.get();
 
-        if (compteSource.getSolde().compareTo(montant) < 0) {
+        if (source.getSolde().compareTo(montant) < 0) {
             throw new SoldeInsufficientException("Solde insuffisant pour le virement");
         }
 
-        compteSource.setSolde(compteSource.getSolde().subtract(montant));
-        compteDestination.setSolde(compteDestination.getSolde().add(montant));
+        source.setSolde(source.getSolde().subtract(montant));
+        dest.setSolde(dest.getSolde().add(montant));
 
-        Transaction transactionSource = new Transaction(TypeTransaction.VIREMENT, montant, "Virement sortant", compteSource);
-        Transaction transactionDest = new Transaction(TypeTransaction.VIREMENT, montant, "Virement entrant", compteDestination);
+        Transaction transactionSource = new Transaction(
+            java.util.UUID.randomUUID(), TypeTransaction.VIREMENT, montant,
+            new java.util.Date(), "Virement vers compte " + idCompteDestination, source, dest);
+        Transaction transactionDest = new Transaction(
+            java.util.UUID.randomUUID(), TypeTransaction.VIREMENT, montant,
+            new java.util.Date(), "Virement reçu de compte " + idCompteSource, dest, source);
 
-        compteSource.ajouterTransaction(transactionSource);
-        compteDestination.ajouterTransaction(transactionDest);
+        source.ajouterTransaction(transactionSource);
+        dest.ajouterTransaction(transactionDest);
 
-        compteRepository.save(compteSource);
-        compteRepository.save(compteDestination);
+        compteRepository.save(source);
+        compteRepository.save(dest);
     }
 
-    public BigDecimal consulterSolde(UUID idCompte) {
+    public BigDecimal consulterSolde(int idCompte) {
         Optional<Compte> compteOpt = compteRepository.findById(idCompte);
         if (!compteOpt.isPresent()) {
             throw new CompteNotFoundException("Compte introuvable");
@@ -105,7 +108,7 @@ public class CompteService {
         return compteOpt.get().getSolde();
     }
 
-    public List<Transaction> listerTransactions(UUID idCompte) {
+    public List<Transaction> listerTransactions(int idCompte) {
         Optional<Compte> compteOpt = compteRepository.findById(idCompte);
         if (!compteOpt.isPresent()) {
             throw new CompteNotFoundException("Compte introuvable");
@@ -113,25 +116,29 @@ public class CompteService {
         return compteOpt.get().getTransactions();
     }
 
-    public void fermerCompte(UUID idCompte) {
-        if (!compteRepository.exists(idCompte)) {
+    public void fermerCompte(int idCompte) {
+        if (!compteRepository.deleteCompte(idCompte)) {
             throw new CompteNotFoundException("Compte introuvable");
         }
-        compteRepository.deleteCompte(idCompte);
     }
 
-
-    public List<Transaction> filtrerTransactionsParType(UUID idCompte, TypeTransaction type) {
-        return filtrerTransactions(idCompte, transaction -> transaction.getTypeTransaction().equals(type));
+    public List<Transaction> filtrerTransactionsParType(int idCompte, TypeTransaction type) {
+        Optional<Compte> compteOpt = compteRepository.findById(idCompte);
+        if (!compteOpt.isPresent()) {
+            throw new CompteNotFoundException("Compte introuvable");
+        }
+        return compteOpt.get().getTransactions().stream()
+                .filter(t -> t.getTypeTransaction().equals(type))
+                .collect(Collectors.toList());
     }
 
-    public List<Transaction> filtrerTransactionsParMontant(UUID idCompte, BigDecimal montantMin, BigDecimal montantMax) {
+    public List<Transaction> filtrerTransactionsParMontant(int idCompte, BigDecimal montantMin, BigDecimal montantMax) {
         return filtrerTransactions(idCompte, transaction ->
                 transaction.getMontant().compareTo(montantMin) >= 0 &&
                         transaction.getMontant().compareTo(montantMax) <= 0);
     }
 
-    public List<Transaction> filtrerTransactionsParDate(UUID idCompte, LocalDate dateDebut, LocalDate dateFin) {
+    public List<Transaction> filtrerTransactionsParDate(int idCompte, LocalDate dateDebut, LocalDate dateFin) {
         return filtrerTransactions(idCompte, transaction -> {
             // Convert Date to LocalDate for comparison (Java 8 compatible)
             LocalDate transactionDate = transaction.getDate().toInstant()
@@ -140,7 +147,7 @@ public class CompteService {
         });
     }
 
-    public List<Transaction> filtrerTransactions(UUID idCompte, Predicate<Transaction> critere) {
+    public List<Transaction> filtrerTransactions(int idCompte, Predicate<Transaction> critere) {
         Optional<Compte> compteOpt = compteRepository.findById(idCompte);
         if (!compteOpt.isPresent()) {
             throw new CompteNotFoundException("Compte introuvable");
@@ -151,19 +158,19 @@ public class CompteService {
                 .collect(Collectors.toList());
     }
 
-    public List<Transaction> trierTransactionsParMontant(UUID idCompte, boolean croissant) {
+    public List<Transaction> trierTransactionsParMontant(int idCompte, boolean croissant) {
         return obtenirTransactionsTries(idCompte,
                 croissant ? Comparator.comparing(Transaction::getMontant)
                         : Comparator.comparing(Transaction::getMontant).reversed());
     }
 
-    public List<Transaction> trierTransactionsParDate(UUID idCompte, boolean croissant) {
+    public List<Transaction> trierTransactionsParDate(int idCompte, boolean croissant) {
         return obtenirTransactionsTries(idCompte,
                 croissant ? Comparator.comparing(Transaction::getDate)
                         : Comparator.comparing(Transaction::getDate).reversed());
     }
 
-    private List<Transaction> obtenirTransactionsTries(UUID idCompte, Comparator<Transaction> comparator) {
+    private List<Transaction> obtenirTransactionsTries(int idCompte, Comparator<Transaction> comparator) {
         Optional<Compte> compteOpt = compteRepository.findById(idCompte);
         if (!compteOpt.isPresent()) {
             throw new CompteNotFoundException("Compte introuvable");
@@ -175,26 +182,26 @@ public class CompteService {
     }
 
     // Statistics methods using streams
-    public BigDecimal calculerTotalDepots(UUID idCompte) {
+    public BigDecimal calculerTotalDepots(int idCompte) {
         return calculerTotalParType(idCompte, TypeTransaction.DEPOT);
     }
 
-    public BigDecimal calculerTotalRetraits(UUID idCompte) {
+    public BigDecimal calculerTotalRetraits(int idCompte) {
         return calculerTotalParType(idCompte, TypeTransaction.RETRAIT);
     }
 
-    public BigDecimal calculerTotalVirements(UUID idCompte) {
+    public BigDecimal calculerTotalVirements(int idCompte) {
         return calculerTotalParType(idCompte, TypeTransaction.VIREMENT);
     }
 
-    private BigDecimal calculerTotalParType(UUID idCompte, TypeTransaction type) {
+    private BigDecimal calculerTotalParType(int idCompte, TypeTransaction type) {
         return filtrerTransactionsParType(idCompte, type).stream()
                 .map(Transaction::getMontant)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     // Detect suspicious transactions
-    public List<Transaction> detecterTransactionsSuspectes(UUID idCompte) {
+    public List<Transaction> detecterTransactionsSuspectes(int idCompte) {
         BigDecimal seuilSuspect = new BigDecimal("10000");
 
         return filtrerTransactions(idCompte, transaction ->
@@ -202,7 +209,7 @@ public class CompteService {
                         isTransactionRepetitive(idCompte, transaction));
     }
 
-    private boolean isTransactionRepetitive(UUID idCompte, Transaction transaction) {
+    private boolean isTransactionRepetitive(int idCompte, Transaction transaction) {
         long countSimilar = filtrerTransactions(idCompte, t ->
                 t.getTypeTransaction().equals(transaction.getTypeTransaction()) &&
                         t.getMontant().equals(transaction.getMontant()) &&

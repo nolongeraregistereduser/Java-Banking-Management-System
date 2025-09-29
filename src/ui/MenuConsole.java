@@ -93,15 +93,16 @@ public class MenuConsole {
     }
 
     private boolean authentifierGestionnaire() {
-        // Simplified authentication for demo - in real app would be more secure
-        System.out.print("Code gestionnaire : ");
-        String code = scanner.nextLine();
-        if ("MANAGER123".equals(code)) {
+        System.out.print("Email : ");
+        String email = scanner.nextLine();
+        System.out.print("Mot de passe : ");
+        String motDePasse = scanner.nextLine();
+        if ("manager".equals(email) && "manager".equals(motDePasse)) {
             isGestionnaire = true;
             System.out.println("Connexion gestionnaire réussie!");
             return true;
         } else {
-            System.out.println("Code gestionnaire incorrect");
+            System.out.println("Email ou mot de passe gestionnaire incorrect");
             return false;
         }
     }
@@ -286,110 +287,6 @@ public class MenuConsole {
         }
     }
 
-    private void menuFiltrerTransactions() {
-        System.out.println("\n=== FILTRER LES TRANSACTIONS ===");
-        System.out.println("1. Par type de transaction");
-        System.out.println("2. Par montant");
-        System.out.println("3. Par date");
-        System.out.println("4. Trier par montant");
-        System.out.println("5. Trier par date");
-        System.out.print("Votre choix : ");
-
-        int choix = obtenirChoixInt();
-        UUID idCompte = choisirCompteClient();
-        if (idCompte == null) return;
-
-        try {
-            switch (choix) {
-                case 1:
-                    filtrerParType(idCompte);
-                    break;
-                case 2:
-                    filtrerParMontant(idCompte);
-                    break;
-                case 3:
-                    filtrerParDate(idCompte);
-                    break;
-                case 4:
-                    trierParMontant(idCompte);
-                    break;
-                case 5:
-                    trierParDate(idCompte);
-                    break;
-                default:
-                    System.out.println("Choix invalide!");
-            }
-        } catch (Exception e) {
-            System.out.println("❌ Erreur : " + e.getMessage());
-        }
-    }
-
-    private void filtrerParType(UUID idCompte) {
-        System.out.println("Types de transaction:");
-        System.out.println("1. DÉPÔT");
-        System.out.println("2. RETRAIT");
-        System.out.println("3. VIREMENT");
-        System.out.print("Votre choix : ");
-
-        int choixType = obtenirChoixInt();
-        TypeTransaction type;
-
-        switch (choixType) {
-            case 1: type = TypeTransaction.DEPOT; break;
-            case 2: type = TypeTransaction.RETRAIT; break;
-            case 3: type = TypeTransaction.VIREMENT; break;
-            default:
-                System.out.println("Type invalide!");
-                return;
-        }
-
-        List<Transaction> transactions = compteController.filtrerTransactionsParType(idCompte, type);
-        afficherListeTransactions(transactions, "TRANSACTIONS " + type);
-    }
-
-    private void filtrerParMontant(UUID idCompte) {
-        System.out.print("Montant minimum : ");
-        BigDecimal montantMin = obtenirMontant();
-        System.out.print("Montant maximum : ");
-        BigDecimal montantMax = obtenirMontant();
-
-        List<Transaction> transactions = compteController.filtrerTransactionsParMontant(idCompte, montantMin, montantMax);
-        afficherListeTransactions(transactions, "TRANSACTIONS ENTRE " + montantMin + "€ ET " + montantMax + "€");
-    }
-
-    private void filtrerParDate(UUID idCompte) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-        try {
-            System.out.print("Date début (dd/MM/yyyy) : ");
-            LocalDate dateDebut = LocalDate.parse(scanner.nextLine(), formatter);
-            System.out.print("Date fin (dd/MM/yyyy) : ");
-            LocalDate dateFin = LocalDate.parse(scanner.nextLine(), formatter);
-
-            List<Transaction> transactions = compteController.filtrerTransactionsParDate(idCompte, dateDebut, dateFin);
-            afficherListeTransactions(transactions, "TRANSACTIONS DU " + dateDebut + " AU " + dateFin);
-
-        } catch (DateTimeParseException e) {
-            System.out.println(" Format de date invalide! Utilisez dd/MM/yyyy");
-        }
-    }
-
-    private void trierParMontant(UUID idCompte) {
-        System.out.print("Ordre croissant? (o/n) : ");
-        boolean croissant = scanner.nextLine().toLowerCase().startsWith("o");
-
-        List<Transaction> transactions = compteController.trierTransactionsParMontant(idCompte, croissant);
-        afficherListeTransactions(transactions, "TRANSACTIONS TRIÉES PAR MONTANT");
-    }
-
-    private void trierParDate(UUID idCompte) {
-        System.out.print("Ordre croissant? (o/n) : ");
-        boolean croissant = scanner.nextLine().toLowerCase().startsWith("o");
-
-        List<Transaction> transactions = compteController.trierTransactionsParDate(idCompte, croissant);
-        afficherListeTransactions(transactions, "TRANSACTIONS TRIÉES PAR DATE");
-    }
-
     // Manager Methods
     private void listerTousLesClients() {
         List<Client> clients = clientController.listerTousLesClients();
@@ -428,7 +325,7 @@ public class MenuConsole {
     private void supprimerClient() {
         System.out.print("ID du client à supprimer : ");
         try {
-            UUID idClient = UUID.fromString(scanner.nextLine());
+            int idClient = Integer.parseInt(scanner.nextLine());
             clientController.supprimerClient(idClient);
             System.out.println(" Client supprimé avec succès.");
         } catch (Exception e) {
@@ -437,14 +334,14 @@ public class MenuConsole {
     }
 
     // Utility Methods
-    private UUID choisirCompteClient() {
+    private int choisirCompteClient() {
         clientController.afficherComptesClient(clientConnecte.getIdClient());
         System.out.print("ID du compte : ");
         try {
-            return UUID.fromString(scanner.nextLine());
+            return Integer.parseInt(scanner.nextLine());
         } catch (Exception e) {
-            System.out.println(" ID de compte invalide!");
-            return null;
+            System.out.println("ID de compte invalide!");
+            return -1;
         }
     }
 
@@ -486,8 +383,8 @@ public class MenuConsole {
 
     // Basic operations (existing methods enhanced)
     private void effectuerDepot() {
-        UUID idCompte = choisirCompteClient();
-        if (idCompte == null) return;
+        int idCompte = choisirCompteClient();
+        if (idCompte <= 0) return;
 
         System.out.print("Montant à déposer : ");
         BigDecimal montant = obtenirMontant();
@@ -497,8 +394,8 @@ public class MenuConsole {
     }
 
     private void effectuerRetrait() {
-        UUID idCompte = choisirCompteClient();
-        if (idCompte == null) return;
+        int idCompte = choisirCompteClient();
+        if (idCompte <= 0) return;
 
         System.out.print("Montant à retirer : ");
         BigDecimal montant = obtenirMontant();
@@ -509,13 +406,13 @@ public class MenuConsole {
 
     private void effectuerVirement() {
         System.out.println("=== VIREMENT ===");
-        UUID idCompteSource = choisirCompteClient();
-        if (idCompteSource == null) return;
+        int idCompteSource = choisirCompteClient();
+        if (idCompteSource <= 0) return;
 
         System.out.print("ID du compte destination : ");
-        UUID idCompteDestination;
+        int idCompteDestination;
         try {
-            idCompteDestination = UUID.fromString(scanner.nextLine());
+            idCompteDestination = Integer.parseInt(scanner.nextLine());
         } catch (Exception e) {
             System.out.println("❌ ID de compte destination invalide!");
             return;
@@ -529,17 +426,121 @@ public class MenuConsole {
     }
 
     private void consulterSolde() {
-        UUID idCompte = choisirCompteClient();
-        if (idCompte == null) return;
+        int idCompte = choisirCompteClient();
+        if (idCompte <= 0) return;
 
         compteController.afficherSolde(idCompte);
     }
 
     private void afficherHistorique() {
-        UUID idCompte = choisirCompteClient();
-        if (idCompte == null) return;
+        int idCompte = choisirCompteClient();
+        if (idCompte <= 0) return;
 
         compteController.afficherHistorique(idCompte);
+    }
+
+    private void menuFiltrerTransactions() {
+        System.out.println("\n=== FILTRER LES TRANSACTIONS ===");
+        System.out.println("1. Par type de transaction");
+        System.out.println("2. Par montant");
+        System.out.println("3. Par date");
+        System.out.println("4. Trier par montant");
+        System.out.println("5. Trier par date");
+        System.out.print("Votre choix : ");
+
+        int choix = obtenirChoixInt();
+        int idCompte = choisirCompteClient();
+        if (idCompte <= 0) return;
+
+        try {
+            switch (choix) {
+                case 1:
+                    filtrerParType(idCompte);
+                    break;
+                case 2:
+                    filtrerParMontant(idCompte);
+                    break;
+                case 3:
+                    filtrerParDate(idCompte);
+                    break;
+                case 4:
+                    trierParMontant(idCompte);
+                    break;
+                case 5:
+                    trierParDate(idCompte);
+                    break;
+                default:
+                    System.out.println("Choix invalide!");
+            }
+        } catch (Exception e) {
+            System.out.println("❌ Erreur : " + e.getMessage());
+        }
+    }
+
+    private void filtrerParType(int idCompte) {
+        System.out.println("Types de transaction:");
+        System.out.println("1. DÉPÔT");
+        System.out.println("2. RETRAIT");
+        System.out.println("3. VIREMENT");
+        System.out.print("Votre choix : ");
+
+        int choixType = obtenirChoixInt();
+        TypeTransaction type;
+
+        switch (choixType) {
+            case 1: type = TypeTransaction.DEPOT; break;
+            case 2: type = TypeTransaction.RETRAIT; break;
+            case 3: type = TypeTransaction.VIREMENT; break;
+            default:
+                System.out.println("Type invalide!");
+                return;
+        }
+
+        List<Transaction> transactions = compteController.filtrerTransactionsParType(idCompte, type);
+        afficherListeTransactions(transactions, "TRANSACTIONS " + type);
+    }
+
+    private void filtrerParMontant(int idCompte) {
+        System.out.print("Montant minimum : ");
+        BigDecimal montantMin = obtenirMontant();
+        System.out.print("Montant maximum : ");
+        BigDecimal montantMax = obtenirMontant();
+
+        List<Transaction> transactions = compteController.filtrerTransactionsParMontant(idCompte, montantMin, montantMax);
+        afficherListeTransactions(transactions, "TRANSACTIONS ENTRE " + montantMin + "€ ET " + montantMax + "€");
+    }
+
+    private void filtrerParDate(int idCompte) {
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        try {
+            System.out.print("Date début (dd/MM/yyyy) : ");
+            java.time.LocalDate dateDebut = java.time.LocalDate.parse(scanner.nextLine(), formatter);
+            System.out.print("Date fin (dd/MM/yyyy) : ");
+            java.time.LocalDate dateFin = java.time.LocalDate.parse(scanner.nextLine(), formatter);
+
+            List<Transaction> transactions = compteController.filtrerTransactionsParDate(idCompte, dateDebut, dateFin);
+            afficherListeTransactions(transactions, "TRANSACTIONS DU " + dateDebut + " AU " + dateFin);
+
+        } catch (java.time.format.DateTimeParseException e) {
+            System.out.println(" Format de date invalide! Utilisez dd/MM/yyyy");
+        }
+    }
+
+    private void trierParMontant(int idCompte) {
+        System.out.print("Ordre croissant? (o/n) : ");
+        boolean croissant = scanner.nextLine().toLowerCase().startsWith("o");
+
+        List<Transaction> transactions = compteController.trierTransactionsParMontant(idCompte, croissant);
+        afficherListeTransactions(transactions, "TRANSACTIONS TRIÉES PAR MONTANT");
+    }
+
+    private void trierParDate(int idCompte) {
+        System.out.print("Ordre croissant? (o/n) : ");
+        boolean croissant = scanner.nextLine().toLowerCase().startsWith("o");
+
+        List<Transaction> transactions = compteController.trierTransactionsParDate(idCompte, croissant);
+        afficherListeTransactions(transactions, "TRANSACTIONS TRIÉES PAR DATE");
     }
 
     // Placeholder methods for manager features

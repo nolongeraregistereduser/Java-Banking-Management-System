@@ -2,20 +2,18 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.util.UUID;
-
 public class Client extends Personne{
-
-    UUID idClient;
+    private static int idCounter = 1;
+    private int idClient;
     List<Compte> comptes;
 
     public Client(String nom, String prenom, String email, String motDePasse) {
         super(nom, prenom, email, motDePasse);
-        this.idClient = UUID.randomUUID();
+        this.idClient = idCounter++;
         this.comptes = new ArrayList<>();
     }
 
-    public UUID getIdClient() {
+    public int getIdClient() {
         return idClient;
     }
 
@@ -23,24 +21,17 @@ public class Client extends Personne{
         return comptes;
     }
 
-
     public void ajouterCompte(Compte compte) {
         if (compte != null && !comptes.contains(compte)) {
             comptes.add(compte);
-            compte.setIdClient(this.idClient); // Synchronisation
+            // Synchronisation: set client ID as int
+            compte.setIdClient(this.idClient);
         }
     }
-
 
     public void supprimerCompte(Compte compte) {
         comptes.remove(compte);
     }
-
-   /*public UUID getIdCompte() {
-        return
-    }
-*/
-
 
     public List<Compte> getListeComptes() {
         return comptes;

@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public class ClientController {
 
@@ -29,15 +28,15 @@ public class ClientController {
         return clientService.creerClient(nom, prenom, email, motDePasse);
     }
 
-    public Compte creerCompte(UUID idClient, TypeCompte typeCompte, BigDecimal soldeInitial) {
+    public Compte creerCompte(int idClient, TypeCompte typeCompte, BigDecimal soldeInitial) {
         return clientService.creerCompte(idClient, typeCompte, soldeInitial);
     }
 
-    public Optional<Client> obtenirClient(UUID idClient) {
+    public Optional<Client> obtenirClient(int idClient) {
         return clientService.obtenirClient(idClient);
     }
 
-    public void supprimerClient(UUID idClient) {
+    public void supprimerClient(int idClient) {
         clientService.supprimerClient(idClient);
     }
 
@@ -50,7 +49,7 @@ public class ClientController {
     }
 
     // Client statistics and information
-    public void afficherInformationsClient(UUID idClient) {
+    public void afficherInformationsClient(int idClient) {
         Optional<Client> clientOpt = clientService.obtenirClient(idClient);
         if (clientOpt.isPresent()) {
             Client client = clientOpt.get();
@@ -65,7 +64,7 @@ public class ClientController {
         }
     }
 
-    public void afficherComptesClient(UUID idClient) {
+    public void afficherComptesClient(int idClient) {
         Optional<Client> clientOpt = clientService.obtenirClient(idClient);
         if (clientOpt.isPresent()) {
             Client client = clientOpt.get();
@@ -84,7 +83,7 @@ public class ClientController {
         }
     }
 
-    public void afficherStatistiquesClient(UUID idClient) {
+    public void afficherStatistiquesClient(int idClient) {
         System.out.println("=== STATISTIQUES CLIENT ===");
         System.out.println("Solde total: " + clientService.calculerSoldeTotal(idClient) + " €");
         System.out.println("Total des dépôts: " + clientService.calculerTotalDepots(idClient) + " €");
@@ -92,7 +91,7 @@ public class ClientController {
     }
 
     // Transaction filtering for clients
-    public void afficherTransactionsFiltrées(UUID idClient, TypeTransaction type) {
+    public void afficherTransactionsFiltrées(int idClient, TypeTransaction type) {
         List<Transaction> transactions = clientService.obtenirTransactionsClient(idClient,
             t -> t.getTypeTransaction().equals(type));
 
@@ -106,7 +105,7 @@ public class ClientController {
         }
     }
 
-    public void detecterTransactionsSuspectes(UUID idClient) {
+    public void detecterTransactionsSuspectes(int idClient) {
         List<Transaction> suspectes = clientService.detecterTransactionsSuspectes(idClient);
         System.out.println("=== TRANSACTIONS SUSPECTES ===");
         if (suspectes.isEmpty()) {

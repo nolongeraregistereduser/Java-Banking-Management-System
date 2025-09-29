@@ -36,7 +36,7 @@ public class ClientService {
     }
 
     // Create account for client
-    public Compte creerCompte(UUID idClient, TypeCompte typeCompte, BigDecimal soldeInitial) {
+    public Compte creerCompte(int idClient, TypeCompte typeCompte, BigDecimal soldeInitial) {
         Optional<Client> clientOpt = clientRepository.findById(idClient);
         if (!clientOpt.isPresent()) {
             throw new ClientNotFoundException("Client introuvable");
@@ -47,7 +47,7 @@ public class ClientService {
         }
 
         Client client = clientOpt.get();
-        Compte compte = new Compte(UUID.randomUUID(), typeCompte, soldeInitial, new ArrayList<>(), idClient);
+        Compte compte = new Compte(typeCompte, soldeInitial, new ArrayList<Transaction>(), idClient);
 
         client.ajouterCompte(compte);
         compteRepository.save(compte);
@@ -57,12 +57,12 @@ public class ClientService {
     }
 
     // Get client information
-    public Optional<Client> obtenirClient(UUID idClient) {
+    public Optional<Client> obtenirClient(int idClient) {
         return clientRepository.findById(idClient);
     }
 
     // Update client information
-    public void modifierClient(UUID idClient, String nom, String prenom, String email) {
+    public void modifierClient(int idClient, String nom, String prenom, String email) {
         Optional<Client> clientOpt = clientRepository.findById(idClient);
         if (!clientOpt.isPresent()) {
             throw new ClientNotFoundException("Client introuvable");
@@ -71,7 +71,7 @@ public class ClientService {
     }
 
     // Delete client and all associated accounts
-    public void supprimerClient(UUID idClient) {
+    public void supprimerClient(int idClient) {
         Optional<Client> clientOpt = clientRepository.findById(idClient);
         if (!clientOpt.isPresent()) {
             throw new ClientNotFoundException("Client introuvable");
@@ -88,7 +88,7 @@ public class ClientService {
     }
 
     // Calculate total balance for all client accounts
-    public BigDecimal calculerSoldeTotal(UUID idClient) {
+    public BigDecimal calculerSoldeTotal(int idClient) {
         Optional<Client> clientOpt = clientRepository.findById(idClient);
         if (!clientOpt.isPresent()) {
             throw new ClientNotFoundException("Client introuvable");
@@ -100,7 +100,7 @@ public class ClientService {
     }
 
     // Get all transactions for a client with filtering capabilities
-    public List<Transaction> obtenirTransactionsClient(UUID idClient, Predicate<Transaction> filter) {
+    public List<Transaction> obtenirTransactionsClient(int idClient, Predicate<Transaction> filter) {
         Optional<Client> clientOpt = clientRepository.findById(idClient);
         if (!clientOpt.isPresent()) {
             throw new ClientNotFoundException("Client introuvable");
@@ -114,7 +114,7 @@ public class ClientService {
     }
 
     // Calculate total deposits for client
-    public BigDecimal calculerTotalDepots(UUID idClient) {
+    public BigDecimal calculerTotalDepots(int idClient) {
         return obtenirTransactionsClient(idClient,
                 t -> t.getTypeTransaction().name().equals("DEPOT"))
                 .stream()
@@ -123,7 +123,7 @@ public class ClientService {
     }
 
     // Calculate total withdrawals for client
-    public BigDecimal calculerTotalRetraits(UUID idClient) {
+    public BigDecimal calculerTotalRetraits(int idClient) {
         return obtenirTransactionsClient(idClient,
                 t -> t.getTypeTransaction().name().equals("RETRAIT"))
                 .stream()
@@ -132,7 +132,7 @@ public class ClientService {
     }
 
     // Detect suspicious transactions (high amounts or repetitive operations)
-    public List<Transaction> detecterTransactionsSuspectes(UUID idClient) {
+    public List<Transaction> detecterTransactionsSuspectes(int idClient) {
         BigDecimal seuilSuspect = new BigDecimal("10000"); // Threshold for high amounts
 
         return obtenirTransactionsClient(idClient, t -> true)
