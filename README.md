@@ -81,8 +81,6 @@ src/
 
 <img width="2000" height="2769" alt="image" src="https://github.com/user-attachments/assets/111426c2-19a8-44c5-83fc-a4d478d7033b" />
 
-> Replace the above placeholder with your UML diagram image.
-
 ## License
 
 MIT
